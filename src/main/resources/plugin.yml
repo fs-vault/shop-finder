@@ -1,0 +1,9 @@
+name: ShopFinder
+main: com.firestartermc.shopfinder.ShopFinder
+author: Firestarter Minecraft Servers
+version: 1.0-SNAPSHOT
+api-version: 1.17
+
+depend:
+  - Kerosene
+  - ChestShop
