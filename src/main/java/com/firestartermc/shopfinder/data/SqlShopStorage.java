@@ -1,6 +1,8 @@
 package com.firestartermc.shopfinder.data;
 
 import com.Acrobot.Breeze.Utils.PriceUtil;
+import com.Acrobot.ChestShop.Database.Account;
+import com.Acrobot.ChestShop.Events.AccountQueryEvent;
 import com.Acrobot.ChestShop.Events.ItemParseEvent;
 import com.Acrobot.ChestShop.Events.ShopCreatedEvent;
 import com.Acrobot.ChestShop.Events.ShopDestroyedEvent;
@@ -17,10 +19,13 @@ import org.bukkit.block.Sign;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.firestartermc.shopfinder.data.SqlStatements.*;
@@ -30,11 +35,13 @@ public class SqlShopStorage implements ShopStorage, Listener {
     private final RemoteDatabase database;
     private final ListMultimap<String, ShopSign> buySigns;
     private final ListMultimap<String, ShopSign> sellSigns;
+    private final Map<Location, ShopSign> signLocations;
 
     public SqlShopStorage(@NotNull ShopFinder plugin) {
         this.database = Kerosene.getKerosene().getDatabase();
         this.buySigns = ArrayListMultimap.create();
         this.sellSigns = ArrayListMultimap.create();
+        this.signLocations = new HashMap<>();
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
         ConcurrentUtils.callAsync(this::preload).exceptionally(throwable -> {
@@ -51,6 +58,10 @@ public class SqlShopStorage implements ShopStorage, Listener {
 
     @Override
     public void addShop(@NotNull ShopCreatedEvent event) {
+        if (signLocations.containsKey(event.getSign().getLocation())) {
+            return;
+        }
+
         var itemId = getFullId(event.getSignLine((short) 3));
         var location = event.getSign().getLocation();
         var seller = event.getPlayer().getUniqueId();
@@ -73,11 +84,46 @@ public class SqlShopStorage implements ShopStorage, Listener {
     }
 
     @Override
+    public void addShop(@NotNull Sign sign) {
+        if (signLocations.containsKey(sign.getLocation())) {
+            return;
+        }
+
+        var itemId = getFullId(sign.getLine((short) 3));
+        var location = sign.getLocation();
+
+        // Seller query
+        AccountQueryEvent accountQueryEvent = new AccountQueryEvent(sign.getLine((short) 0));
+        Bukkit.getPluginManager().callEvent(accountQueryEvent);
+
+        var seller = accountQueryEvent.getAccount().getUuid();
+        var prices = sign.getLine((short) 2);
+
+        var buyPrice = PriceUtil.getExactBuyPrice(prices);
+        var sellPrice = PriceUtil.getExactSellPrice(prices);
+
+        if (buyPrice.doubleValue() > 0.0D) {
+            var shopSign = new ShopSign(itemId, false, seller, location);
+            buySigns.put(itemId, shopSign);
+            recordShopSign(shopSign);
+        }
+
+        if (sellPrice.doubleValue() > 0.0D) {
+            var shopSign = new ShopSign(itemId, true, seller, location);
+            sellSigns.put(itemId, shopSign);
+            recordShopSign(shopSign);
+        }
+
+        System.out.println("Recorded new shop sign: " + sign.getLocation());
+    }
+
+    @Override
     public void removeShop(@NotNull Sign sign) {
         var locationHash = sign.getLocation().hashCode();
 
         buySigns.entries().removeIf(entry -> entry.getValue().location().hashCode() == locationHash);
         sellSigns.entries().removeIf(entry -> entry.getValue().location().hashCode() == locationHash);
+        signLocations.remove(sign.getLocation());
         deleteShopSign(sign.getLocation());
     }
 
@@ -90,6 +136,8 @@ public class SqlShopStorage implements ShopStorage, Listener {
     }
 
     private void recordShopSign(@NotNull ShopSign sign) {
+        signLocations.put(sign.location(), sign);
+
         ConcurrentUtils.callAsync(() -> {
             try (var connection = database.getConnection()) {
                 var statement = connection.prepareStatement(RECORD_SIGN);
@@ -148,6 +196,8 @@ public class SqlShopStorage implements ShopStorage, Listener {
                 } else {
                     buySigns.put(item, sign);
                 }
+
+                signLocations.put(sign.location(), sign);
             }
         } catch (SQLException e) {
             e.printStackTrace();

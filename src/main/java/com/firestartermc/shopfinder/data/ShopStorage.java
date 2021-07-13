@@ -13,5 +13,7 @@ public interface ShopStorage {
 
     void addShop(@NotNull ShopCreatedEvent event);
 
+    void addShop(@NotNull Sign sign);
+
     void removeShop(@NotNull Sign sign);
 }

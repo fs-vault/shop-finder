@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.firestartermc.kerosene.util.ConcurrentUtils.ensureMain;
-import static com.firestartermc.kerosene.util.TeleportUtils.teleport;
+import static com.firestartermc.kerosene.util.PlayerUtils.teleportAsync;
 
 public class ShopsMenu extends PlayerGui {
 
@@ -55,8 +55,7 @@ public class ShopsMenu extends PlayerGui {
         var location = sign.facingLocation();
 
         location.getWorld().getChunkAtAsync(location).thenAccept(chunk -> ensureMain(() -> {
-            teleport(player, location);
-            callback.run();
+            teleportAsync(player, location).thenAccept(a -> callback.run());
         }));
     }
 }
