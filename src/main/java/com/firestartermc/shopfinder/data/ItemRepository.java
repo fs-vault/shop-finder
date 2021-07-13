@@ -25,6 +25,11 @@ public class ItemRepository {
     }
 
     @NotNull
+    public Map<String, String> getItems() {
+        return items;
+    }
+
+    @NotNull
     public Set<String> getItemNames() {
         return items.keySet();
     }
