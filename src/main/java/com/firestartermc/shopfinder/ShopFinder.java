@@ -1,17 +1,15 @@
 package com.firestartermc.shopfinder;
 
-import com.firestartermc.kerosene.Kerosene;
+import com.firestartermc.kerosene.plugin.BukkitPlugin;
 import com.firestartermc.shopfinder.command.BuySellCommand;
 import com.firestartermc.shopfinder.command.FindShopCommand;
 import com.firestartermc.shopfinder.data.ItemRepository;
 import com.firestartermc.shopfinder.data.ShopStorage;
 import com.firestartermc.shopfinder.data.SqlShopStorage;
 import com.firestartermc.shopfinder.listener.ChunkLoadListener;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-public class ShopFinder extends JavaPlugin implements Listener {
+public class ShopFinder extends BukkitPlugin {
 
     private ShopStorage shopStorage;
     private ItemRepository itemRepository;
@@ -24,8 +22,8 @@ public class ShopFinder extends JavaPlugin implements Listener {
         var pluginManager = getServer().getPluginManager();
         pluginManager.registerEvents(new ChunkLoadListener(this), this);
 
-        getCommand("buy").setExecutor(new BuySellCommand(this));
-        getCommand("findshop").setExecutor(new FindShopCommand(this));
+        registerCommand("buy", new BuySellCommand(this));
+        registerCommand("findshop", new FindShopCommand(this));
 
         // todo stock checker task (or on chunk load)
     }

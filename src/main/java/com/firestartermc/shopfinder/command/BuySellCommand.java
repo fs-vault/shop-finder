@@ -1,6 +1,6 @@
 package com.firestartermc.shopfinder.command;
 
-import com.firestartermc.kerosene.command.BrigadierCommand;
+import com.firestartermc.kerosene.command.BrigadierExecutor;
 import com.firestartermc.shopfinder.ShopFinder;
 import com.firestartermc.shopfinder.menu.ShopsMenu;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -16,13 +16,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
-public class BuySellCommand extends BrigadierCommand {
+public class BuySellCommand implements BrigadierExecutor {
 
     private final ShopFinder plugin;
 
     public BuySellCommand(@NotNull ShopFinder plugin) {
         this.plugin = plugin;
-        registerCompletions();
     }
 
     @Override
@@ -53,7 +52,7 @@ public class BuySellCommand extends BrigadierCommand {
     @NotNull
     public List<LiteralArgumentBuilder<?>> getCompletions() {
         var argument = RequiredArgumentBuilder.argument("item", StringArgumentType.greedyString()).suggests((context, suggestionsBuilder) -> {
-            var remaining = suggestionsBuilder.getRemaining();
+            var remaining = suggestionsBuilder.getRemaining().toLowerCase();
 
             plugin.getItemRepository().getItems().keySet().stream()
                     .filter(name -> name.toLowerCase().startsWith(remaining))

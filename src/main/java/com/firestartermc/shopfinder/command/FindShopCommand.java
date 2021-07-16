@@ -1,6 +1,6 @@
 package com.firestartermc.shopfinder.command;
 
-import com.firestartermc.kerosene.command.BrigadierCommand;
+import com.firestartermc.kerosene.command.BrigadierExecutor;
 import com.firestartermc.shopfinder.ShopFinder;
 import com.firestartermc.shopfinder.menu.ShopsMenu;
 import com.firestartermc.shopfinder.data.ItemRepository;
@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class FindShopCommand extends BrigadierCommand {
+public class FindShopCommand implements BrigadierExecutor {
 
     private final ShopFinder plugin;
     private final ItemRepository itemRepository;
@@ -26,8 +26,6 @@ public class FindShopCommand extends BrigadierCommand {
     public FindShopCommand(@NotNull ShopFinder plugin) {
         this.plugin = plugin;
         this.itemRepository = plugin.getItemRepository();
-
-        registerCompletions();
     }
 
     @Override
@@ -60,7 +58,7 @@ public class FindShopCommand extends BrigadierCommand {
     @NotNull
     public List<LiteralArgumentBuilder<?>> getCompletions() {
         var argument = RequiredArgumentBuilder.argument("item", StringArgumentType.greedyString()).suggests((context, suggestionsBuilder) -> {
-            var remaining = suggestionsBuilder.getRemaining();
+            var remaining = suggestionsBuilder.getRemaining().toLowerCase();
 
             plugin.getItemRepository().getItems().keySet().stream()
                     .filter(name -> name.toLowerCase().startsWith(remaining))

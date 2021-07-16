@@ -38,7 +38,7 @@ public class SqlShopStorage implements ShopStorage, Listener {
     private final Map<Location, ShopSign> signLocations;
 
     public SqlShopStorage(@NotNull ShopFinder plugin) {
-        this.database = Kerosene.getKerosene().getDatabase();
+        this.database = plugin.getKerosene().getDatabase();
         this.buySigns = ArrayListMultimap.create();
         this.sellSigns = ArrayListMultimap.create();
         this.signLocations = new HashMap<>();
