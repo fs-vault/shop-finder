@@ -60,7 +60,7 @@ public class FindShopCommand extends BrigadierCommand {
     @NotNull
     public List<LiteralArgumentBuilder<?>> getCompletions() {
         var argument = RequiredArgumentBuilder.argument("item", StringArgumentType.greedyString()).suggests((context, suggestionsBuilder) -> {
-            var remaining = suggestionsBuilder.getRemaining();
+            var remaining = suggestionsBuilder.getRemaining().toLowerCase();
 
             plugin.getItemRepository().getItems().keySet().stream()
                     .filter(name -> name.toLowerCase().startsWith(remaining))

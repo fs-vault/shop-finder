@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_17_R1.enchantments.CraftEnchantment;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -46,6 +47,15 @@ public class ItemRepository {
             }
 
             var stack = new ItemStack(material, 1);
+
+            // TODO move elsewhere eventually
+            if (material == Material.FIREWORK_ROCKET) {
+                var meta = (FireworkMeta) stack.getItemMeta();
+                meta.setPower(1);
+                stack.setItemMeta(meta);
+            }
+            // ---
+
             var name = ItemUtils.getFriendlyName(material);
             var id = ItemUtil.getName(stack);
             items.put(name, id);
